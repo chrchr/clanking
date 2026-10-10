@@ -49,9 +49,23 @@ all the development dependencies on your system. The `podman-make`
 script builds and runs the container. Adapting it for Docker is left as
 an exercise for the reader or the reader's coding agent.
 
+### macOS
+
+On macOS, Clanking plays sound through [SoX](https://sourceforge.net/projects/sox/)
+instead of PipeWire. The GTK 4 user interface is not supported, so configure
+Clanking from the command line (`clanking tempo 100`, `clanking volume -6`,
+`clanking mute`).
+
+```sh
+brew install go sox
+CGO_ENABLED=0 go build -o ~/.local/bin/clanking ./cmd/clanking
+```
+
+Make sure `~/.local/bin` is in your `$PATH`, then run `clanking selftest`.
+
 ## Configure your Coding Agents
 
-With `clanking` and `pw-cat` in your `$PATH` on a system with PipeWire,
+With `clanking` and `pw-cat` (or `play` from SoX on macOS) in your `$PATH`,
 you can configure your coding agent to invoke Clanking.
 
 For Claude, install the Clanking plugin from this repository's marketplace:
