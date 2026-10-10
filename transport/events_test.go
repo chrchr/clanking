@@ -18,7 +18,7 @@ const (
 
 func serveEvents(t *testing.T, hub *events.Hub) string {
 	t.Helper()
-	path := filepath.Join(t.TempDir(), eventsName)
+	path := filepath.Join(shortTempDir(t), eventsName)
 	l, err := transport.ListenStream(path)
 	if err != nil {
 		t.Fatal(err)
@@ -63,7 +63,7 @@ func TestWatchReceivesPublishedLine(t *testing.T) {
 }
 
 func TestWatchReturnsWhenServerCloses(t *testing.T) {
-	path := filepath.Join(t.TempDir(), eventsName)
+	path := filepath.Join(shortTempDir(t), eventsName)
 	l, err := transport.ListenStream(path)
 	if err != nil {
 		t.Fatal(err)

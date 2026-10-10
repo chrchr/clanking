@@ -16,7 +16,7 @@ const (
 
 var errSave = errors.New("save failed")
 
-func controlPath(t *testing.T) string { return filepath.Join(t.TempDir(), controlName) }
+func controlPath(t *testing.T) string { return filepath.Join(shortTempDir(t), controlName) }
 
 func serveControl(t *testing.T, path string, handle func(control.Request) (control.Settings, error)) {
 	t.Helper()

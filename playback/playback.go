@@ -1,4 +1,4 @@
-// Package playback streams float32 PCM to PipeWire through pw-cat.
+// Package playback streams float32 PCM to an audio player: pw-cat on Linux, sox on macOS.
 package playback
 
 import (
@@ -10,7 +10,7 @@ import (
 	"time"
 )
 
-// PipeBytes bounds the pipe to pw-cat so that queued audio stays short.
+// PipeBytes bounds the pipe to the player so that queued audio stays short.
 const PipeBytes = 4096
 
 // Encode appends samples to dst as little-endian float32 bytes.
@@ -51,5 +51,5 @@ func (s *Stream) Write(p []byte) (int, error) {
 	return s.pipe.Write(p)
 }
 
-// Close ends the stream and waits for pw-cat to drain and exit.
+// Close ends the stream and waits for the player to drain and exit.
 func (s *Stream) Close() error { return errors.Join(s.pipe.Close(), s.cmd.Wait()) }

@@ -22,7 +22,18 @@ const (
 
 var errSpawn = errors.New("spawn failed")
 
-func socketPath(t *testing.T) string { return filepath.Join(t.TempDir(), socketName) }
+func socketPath(t *testing.T) string { return filepath.Join(shortTempDir(t), socketName) }
+
+// shortTempDir keeps socket paths under macOS's 104-byte limit, which t.TempDir can exceed.
+func shortTempDir(t *testing.T) string {
+	t.Helper()
+	dir, err := os.MkdirTemp("/tmp", "clanking")
+	if err != nil {
+		t.Fatal(err)
+	}
+	t.Cleanup(func() { _ = os.RemoveAll(dir) })
+	return dir
+}
 
 type delivery struct {
 	cue synth.Cue

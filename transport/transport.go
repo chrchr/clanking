@@ -52,9 +52,13 @@ func Serve(conn *net.UnixConn, play func(synth.Cue, string)) error {
 
 // Send delivers one cue and the sender's working directory to the daemon socket.
 func Send(path string, c synth.Cue, cwd string) error {
-	conn, err := net.Dial(network, path)
+	conn, err := net.DialUnix(network, nil, &net.UnixAddr{Name: path, Net: network})
 	if err != nil {
 		return err
+	}
+	// macOS caps datagrams at the send buffer size, 2 KiB by default.
+	if err := conn.SetWriteBuffer(maxDatagram); err != nil {
+		return errors.Join(err, conn.Close())
 	}
 	if err := conn.SetWriteDeadline(time.Now().Add(sendTimeout)); err != nil {
 		return errors.Join(err, conn.Close())
