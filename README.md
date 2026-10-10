@@ -63,9 +63,23 @@ CGO_ENABLED=0 go build -o ~/.local/bin/clanking ./cmd/clanking
 
 Make sure `~/.local/bin` is in your `$PATH`, then run `clanking selftest`.
 
+### Windows
+
+On Windows, Clanking plays sound through `ffplay` from
+[FFmpeg](https://ffmpeg.org/). The GTK 4 user interface is not supported, so
+configure Clanking from the command line. In PowerShell:
+
+```powershell
+winget install GoLang.Go Gyan.FFmpeg
+go build -o "$env:USERPROFILE\.local\bin\clanking.exe" ./cmd/clanking
+```
+
+Add `%USERPROFILE%\.local\bin` to your `PATH`, open a new terminal, then run
+`clanking selftest`.
+
 ## Configure your Coding Agents
 
-With `clanking` and `pw-cat` (or `play` from SoX on macOS) in your `$PATH`,
+With `clanking` and `pw-cat` (`play` from SoX on macOS, `ffplay` on Windows) in your `$PATH`,
 you can configure your coding agent to invoke Clanking.
 
 For Claude, install the Clanking plugin from this repository's marketplace:
