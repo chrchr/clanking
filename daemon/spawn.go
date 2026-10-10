@@ -4,7 +4,6 @@ import (
 	"errors"
 	"os"
 	"os/exec"
-	"syscall"
 
 	"github.com/chrchr/clanking/statedir"
 )
@@ -14,7 +13,7 @@ func Command(binary string, logFile *os.File) *exec.Cmd {
 	cmd := exec.Command(binary, "daemon")
 	cmd.Dir = "/"
 	cmd.Stderr = logFile
-	cmd.SysProcAttr = &syscall.SysProcAttr{Setsid: true}
+	cmd.SysProcAttr = detached()
 	return cmd
 }
 

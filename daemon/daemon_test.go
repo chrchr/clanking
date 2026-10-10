@@ -122,7 +122,9 @@ func TestPlayWithNeverIdleKeepsPlaying(t *testing.T) {
 func TestLockRefusesSymlink(t *testing.T) {
 	dir := t.TempDir()
 	path := filepath.Join(dir, lockName)
-	_ = os.Symlink(filepath.Join(dir, "target"), path)
+	if err := os.Symlink(filepath.Join(dir, "target"), path); err != nil {
+		t.Skip("cannot create symlinks here:", err)
+	}
 	if _, _, err := daemon.Lock(path); err == nil {
 		t.Error("Lock error = nil, want an error for a symlinked lock")
 	}

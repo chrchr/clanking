@@ -1,4 +1,4 @@
-// Package playback streams float32 PCM to an audio player: pw-cat on Linux, sox on macOS.
+// Package playback streams float32 PCM to an audio player: pw-cat on Linux, sox on macOS, ffplay on Windows.
 package playback
 
 import (
@@ -45,7 +45,8 @@ func Start(cmd *exec.Cmd) (*Stream, error) {
 
 // Write sends encoded PCM to the player, failing if it stalls past StallTimeout.
 func (s *Stream) Write(p []byte) (int, error) {
-	if err := s.pipe.SetWriteDeadline(time.Now().Add(StallTimeout)); err != nil {
+	// Windows pipes take no deadlines; there a stalled player blocks the write.
+	if err := s.pipe.SetWriteDeadline(time.Now().Add(StallTimeout)); err != nil && !errors.Is(err, os.ErrNoDeadline) {
 		return 0, err
 	}
 	return s.pipe.Write(p)
