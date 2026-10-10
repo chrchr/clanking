@@ -1,4 +1,4 @@
-// Package playback streams float32 PCM to PipeWire through pw-cat.
+// Package playback streams float32 PCM to an audio player: pw-cat on Linux, sox on macOS.
 package playback
 
 import (
@@ -7,29 +7,11 @@ import (
 	"math"
 	"os"
 	"os/exec"
-	"strconv"
 	"time"
-
-	"golang.org/x/sys/unix"
-
-	"github.com/chrchr/clanking/pan"
-	"github.com/chrchr/clanking/synth"
 )
 
-// PipeBytes bounds the pipe to pw-cat so that queued audio stays short.
+// PipeBytes bounds the pipe to the player so that queued audio stays short.
 const PipeBytes = 4096
-
-// StallTimeout is how long a write may wait on a player that stopped reading.
-const StallTimeout = time.Second
-
-var pwCatArgs = []string{
-	"--playback", "--raw",
-	"--format", "f32",
-	"--rate", strconv.Itoa(synth.SampleRate),
-	"--channels", strconv.Itoa(pan.Channels),
-	"--properties", "application.name=clanking",
-	"-",
-}
 
 // Encode appends samples to dst as little-endian float32 bytes.
 func Encode(dst []byte, samples []float32) []byte {
@@ -44,9 +26,6 @@ type Stream struct {
 	cmd  *exec.Cmd
 	pipe *os.File
 }
-
-// Command returns the pw-cat invocation that plays raw interleaved stereo float32 PCM from stdin.
-func Command() *exec.Cmd { return exec.Command("pw-cat", pwCatArgs...) }
 
 // Start launches a player reading raw PCM from a short pipe.
 func Start(cmd *exec.Cmd) (*Stream, error) {
@@ -72,17 +51,5 @@ func (s *Stream) Write(p []byte) (int, error) {
 	return s.pipe.Write(p)
 }
 
-func shrink(pipe *os.File) error {
-	raw, err := pipe.SyscallConn()
-	if err != nil {
-		return err
-	}
-	var fcntlErr error
-	if err := raw.Control(func(fd uintptr) { _, fcntlErr = unix.FcntlInt(fd, unix.F_SETPIPE_SZ, PipeBytes) }); err != nil {
-		return err
-	}
-	return fcntlErr
-}
-
-// Close ends the stream and waits for pw-cat to drain and exit.
+// Close ends the stream and waits for the player to drain and exit.
 func (s *Stream) Close() error { return errors.Join(s.pipe.Close(), s.cmd.Wait()) }

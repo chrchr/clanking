@@ -33,7 +33,7 @@ func TestWriteFailsWhenPlayerStopsReading(t *testing.T) {
 		t.Fatal(err)
 	}
 	t.Cleanup(func() { _ = cmd.Process.Kill(); _ = cmd.Wait() })
-	if _, err := stream.Write(make([]byte, 4*playback.PipeBytes)); !errors.Is(err, os.ErrDeadlineExceeded) {
+	if _, err := stream.Write(make([]byte, 32*playback.PipeBytes)); !errors.Is(err, os.ErrDeadlineExceeded) {
 		t.Errorf("Write error = %v, want %v", err, os.ErrDeadlineExceeded)
 	}
 }
