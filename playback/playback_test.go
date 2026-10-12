@@ -8,6 +8,7 @@ import (
 	"slices"
 	"strconv"
 	"testing"
+	"time"
 
 	"github.com/chrchr/clanking/pan"
 	"github.com/chrchr/clanking/playback"
@@ -35,6 +36,24 @@ func TestWriteFailsWhenPlayerStopsReading(t *testing.T) {
 	t.Cleanup(func() { _ = cmd.Process.Kill(); _ = cmd.Wait() })
 	if _, err := stream.Write(make([]byte, 32*playback.PipeBytes)); !errors.Is(err, os.ErrDeadlineExceeded) {
 		t.Errorf("Write error = %v, want %v", err, os.ErrDeadlineExceeded)
+	}
+}
+
+func TestCloseKillsPlayerThatDoesNotExit(t *testing.T) {
+	cmd := exec.Command("sleep", "30")
+	stream, err := playback.Start(cmd)
+	if err != nil {
+		t.Fatal(err)
+	}
+	start := time.Now()
+	if err := stream.Close(); !errors.Is(err, playback.ErrPlayerStuck) {
+		t.Errorf("Close error = %v, want %v", err, playback.ErrPlayerStuck)
+	}
+	if elapsed := time.Since(start); elapsed > playback.StallTimeout+time.Second {
+		t.Errorf("Close took %v, want at most %v", elapsed, playback.StallTimeout+time.Second)
+	}
+	if cmd.ProcessState == nil {
+		t.Error("player still running after Close")
 	}
 }
 
