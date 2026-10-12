@@ -39,7 +39,7 @@ const (
 )
 
 var (
-	errUsage         = errors.New("usage: clanking hook [--no-spawn] | daemon | play <cue> | mute | unmute | toggle | volume <dB> | tempo <bpm> | root <midi> | status | selftest")
+	errUsage         = errors.New("usage: clanking hook [--no-spawn] | daemon | play <cue> | mute | unmute | toggle | volume <dB>|up|down | tempo <bpm> | root <midi> | status | selftest")
 	errSpawnDisabled = errors.New("no daemon is running and spawning is disabled")
 	errUnknownCue    = errors.New("unknown cue")
 )

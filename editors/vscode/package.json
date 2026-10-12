@@ -1,0 +1,31 @@
+{
+  "name": "clanking",
+  "displayName": "Clanking",
+  "description": "Status bar volume and mute control for the Clanking daemon.",
+  "version": "0.1.0",
+  "publisher": "chrchr",
+  "license": "SEE LICENSE IN ../../LICENSE",
+  "repository": { "type": "git", "url": "https://github.com/chrchr/clanking" },
+  "engines": { "vscode": "^1.80.0" },
+  "activationEvents": ["onStartupFinished"],
+  "main": "./extension.js",
+  "contributes": {
+    "commands": [
+      { "command": "clanking.menu", "title": "Clanking: Volume Menu" },
+      { "command": "clanking.volumeUp", "title": "Clanking: Volume Up" },
+      { "command": "clanking.volumeDown", "title": "Clanking: Volume Down" },
+      { "command": "clanking.toggleMute", "title": "Clanking: Mute / Unmute" },
+      { "command": "clanking.setVolume", "title": "Clanking: Set Volume…" }
+    ],
+    "configuration": {
+      "title": "Clanking",
+      "properties": {
+        "clanking.path": {
+          "type": "string",
+          "default": "",
+          "description": "Path to the clanking binary. Empty uses clanking from PATH, then ~/.local/bin/clanking."
+        }
+      }
+    }
+  }
+}

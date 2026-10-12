@@ -54,7 +54,8 @@ an exercise for the reader or the reader's coding agent.
 On macOS, Clanking plays sound through [SoX](https://sourceforge.net/projects/sox/)
 instead of PipeWire. The GTK 4 user interface is not supported, so configure
 Clanking from the command line (`clanking tempo 100`, `clanking volume -6`,
-`clanking mute`).
+`clanking volume up`, `clanking mute`) or from the VS Code status bar
+(see below).
 
 ```sh
 brew install go sox
@@ -62,6 +63,13 @@ CGO_ENABLED=0 go build -o ~/.local/bin/clanking ./cmd/clanking
 ```
 
 Make sure `~/.local/bin` is in your `$PATH`, then run `clanking selftest`.
+
+### VS Code status bar
+
+`editors/vscode` holds a small VS Code extension that shows Clanking's
+volume in the status bar. Click it to step the volume up or down by 3 dB,
+mute, or set a level. It works on any platform, including macOS, where the
+GTK UI isn't available. See [its README](editors/vscode/README.md) to install it.
 
 ## Configure your Coding Agents
 

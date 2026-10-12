@@ -25,6 +25,8 @@ func TestParseAcceptsRequests(t *testing.T) {
 		"toggle":      {Command: control.Toggle},
 		"volume -6":   {Command: control.Volume, VolumeDB: -6},
 		"volume 24\n": {Command: control.Volume, VolumeDB: 24},
+		"volume up":   {Command: control.VolumeUp},
+		"volume down": {Command: control.VolumeDown},
 		"tempo 90":    {Command: control.Tempo, TempoBPM: 90},
 		"root 62":     {Command: control.Root, RootNote: 62},
 		"root 86":     {Command: control.Root, RootNote: 86},
@@ -39,7 +41,7 @@ func TestParseAcceptsRequests(t *testing.T) {
 }
 
 func TestParseRejectsInvalidRequests(t *testing.T) {
-	for _, line := range []string{"", "louder", "volume", "volume loud", "volume NaN", "volume -Inf", "volume 24.5", "mute now", "tempo 59", "tempo 241", "tempo fast", "tempo 90.5", "root 61", "root 87", "root D5"} {
+	for _, line := range []string{"", "louder", "volume", "volume loud", "volume up 3", "volume NaN", "volume -Inf", "volume 24.5", "mute now", "tempo 59", "tempo 241", "tempo fast", "tempo 90.5", "root 61", "root 87", "root D5"} {
 		t.Run(line, func(t *testing.T) {
 			if _, err := control.Parse(line); !errors.Is(err, control.ErrInvalid) {
 				t.Errorf("Parse(%q) error = %v, want %v", line, err, control.ErrInvalid)
@@ -52,6 +54,31 @@ func TestRequestStringParsesBack(t *testing.T) {
 	want := control.Request{Command: control.Volume, VolumeDB: -7.5}
 	if got, _ := control.Parse(want.String()); got != want {
 		t.Errorf("Parse(String()) = %+v, want %+v", got, want)
+	}
+}
+
+func TestVolumeStepRequestStringParsesBack(t *testing.T) {
+	for _, want := range []control.Request{{Command: control.VolumeUp}, {Command: control.VolumeDown}} {
+		if got, _ := control.Parse(want.String()); got != want {
+			t.Errorf("Parse(%q) = %+v, want %+v", want.String(), got, want)
+		}
+	}
+}
+
+func TestApplyVolumeStepsByVolumeStepDB(t *testing.T) {
+	s := control.Settings{VolumeDB: -6}
+	if got := s.Apply(control.Request{Command: control.VolumeUp}).VolumeDB; !approx.Equal(got, -6+control.VolumeStepDB, tolerance) {
+		t.Errorf("volume up from -6 = %g, want %g", got, -6+control.VolumeStepDB)
+	}
+	if got := s.Apply(control.Request{Command: control.VolumeDown}).VolumeDB; !approx.Equal(got, -6-control.VolumeStepDB, tolerance) {
+		t.Errorf("volume down from -6 = %g, want %g", got, -6-control.VolumeStepDB)
+	}
+}
+
+func TestApplyVolumeUpStopsAtMax(t *testing.T) {
+	s := control.Settings{VolumeDB: control.MaxVolumeDB - 1}
+	if got := s.Apply(control.Request{Command: control.VolumeUp}).VolumeDB; got != control.MaxVolumeDB {
+		t.Errorf("volume up near max = %g, want %g", got, control.MaxVolumeDB)
 	}
 }
 
