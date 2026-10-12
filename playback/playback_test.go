@@ -5,6 +5,7 @@ import (
 	"errors"
 	"os"
 	"os/exec"
+	"runtime"
 	"slices"
 	"strconv"
 	"testing"
@@ -27,6 +28,9 @@ func TestEncodeAppendsToDestination(t *testing.T) {
 }
 
 func TestWriteFailsWhenPlayerStopsReading(t *testing.T) {
+	if runtime.GOOS == "windows" {
+		t.Skip("Windows pipes take no write deadlines")
+	}
 	cmd := exec.Command("sleep", "10")
 	stream, err := playback.Start(cmd)
 	if err != nil {
@@ -39,6 +43,9 @@ func TestWriteFailsWhenPlayerStopsReading(t *testing.T) {
 }
 
 func TestCommandPlaysStereo(t *testing.T) {
+	if runtime.GOOS == "windows" {
+		t.Skip("ffplay takes a channel layout; see TestCommandPlaysStereoLayout")
+	}
 	args := playback.Command().Args
 	i := slices.Index(args, "--channels")
 	if got := args[i+1]; got != strconv.Itoa(pan.Channels) {

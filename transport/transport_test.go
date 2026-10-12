@@ -4,6 +4,7 @@ import (
 	"errors"
 	"os"
 	"path/filepath"
+	"runtime"
 	"strings"
 	"testing"
 	"time"
@@ -27,7 +28,11 @@ func socketPath(t *testing.T) string { return filepath.Join(shortTempDir(t), soc
 // shortTempDir keeps socket paths under macOS's 104-byte limit, which t.TempDir can exceed.
 func shortTempDir(t *testing.T) string {
 	t.Helper()
-	dir, err := os.MkdirTemp("/tmp", "clanking")
+	base := "/tmp"
+	if runtime.GOOS == "windows" {
+		base = ""
+	}
+	dir, err := os.MkdirTemp(base, "clanking")
 	if err != nil {
 		t.Fatal(err)
 	}

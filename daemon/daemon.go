@@ -2,13 +2,9 @@
 package daemon
 
 import (
-	"errors"
 	"io"
 	"log/slog"
-	"os"
 	"time"
-
-	"golang.org/x/sys/unix"
 
 	"github.com/chrchr/clanking/control"
 	"github.com/chrchr/clanking/grid"
@@ -22,24 +18,6 @@ const BlockFrames = 256
 
 // NeverIdle disables the idle exit.
 const NeverIdle time.Duration = 0
-
-const lockMode = 0o600
-
-// Lock takes the single-instance lock, reporting false when another daemon holds it.
-func Lock(path string) (*os.File, bool, error) {
-	f, err := os.OpenFile(path, os.O_CREATE|os.O_RDWR|unix.O_NOFOLLOW, lockMode)
-	if err != nil {
-		return nil, false, err
-	}
-	err = unix.Flock(int(f.Fd()), unix.LOCK_EX|unix.LOCK_NB)
-	if errors.Is(err, unix.EWOULDBLOCK) {
-		return nil, false, f.Close()
-	}
-	if err != nil {
-		return nil, false, errors.Join(err, f.Close())
-	}
-	return f, true, nil
-}
 
 // Play schedules queued sounds on the grid and mixes them into out block by block, applying queued settings, until idle passes with no new sound, or forever with NeverIdle.
 func Play(m *mixer.Mixer, s *grid.Scheduler, sounds <-chan mixer.Sound, settings <-chan control.Settings, out io.Writer, idle time.Duration, now func() time.Time, started func(mixer.Sound)) error {
