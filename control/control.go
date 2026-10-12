@@ -21,10 +21,13 @@ const (
 	Mute   = "mute"
 	Unmute = "unmute"
 	Volume = "volume"
-	Status = "status"
-	Toggle = "toggle"
-	Tempo  = "tempo"
-	Root   = "root"
+	// VolumeUp and VolumeDown step the master volume by VolumeStepDB.
+	VolumeUp   = Volume + " up"
+	VolumeDown = Volume + " down"
+	Status     = "status"
+	Toggle     = "toggle"
+	Tempo      = "tempo"
+	Root       = "root"
 )
 
 // The tempo range in beats per minute, and the tempo before any is set.
@@ -43,6 +46,9 @@ const (
 
 // MaxVolumeDB is the loudest volume, where limited output reaches full scale.
 const MaxVolumeDB = 24.0
+
+// VolumeStepDB is how far one volume up or volume down request moves the master volume.
+const VolumeStepDB = 3.0
 
 const (
 	settingsMode  = 0o644
@@ -83,6 +89,8 @@ func Parse(line string) (Request, error) {
 	switch {
 	case len(fields) == 1 && slices.Contains([]string{Mute, Unmute, Status, Toggle}, fields[0]):
 		return Request{Command: fields[0]}, nil
+	case len(fields) == 2 && fields[0] == Volume && slices.Contains([]string{VolumeUp, VolumeDown}, Volume+" "+fields[1]):
+		return Request{Command: Volume + " " + fields[1]}, nil
 	case len(fields) == 2 && fields[0] == Volume:
 		db, err := strconv.ParseFloat(fields[1], 64)
 		if err == nil && !math.IsNaN(db) && !math.IsInf(db, 0) && db <= MaxVolumeDB {
@@ -129,6 +137,10 @@ func (s Settings) Apply(r Request) Settings {
 		s.Muted = !s.Muted
 	case Volume:
 		s.VolumeDB = r.VolumeDB
+	case VolumeUp:
+		s.VolumeDB = min(s.VolumeDB+VolumeStepDB, MaxVolumeDB)
+	case VolumeDown:
+		s.VolumeDB -= VolumeStepDB
 	case Tempo:
 		s.TempoBPM = r.TempoBPM
 	case Root:
