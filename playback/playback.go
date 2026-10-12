@@ -21,6 +21,9 @@ func Encode(dst []byte, samples []float32) []byte {
 	return dst
 }
 
+// ErrPlayerStuck reports a player that did not exit within StallTimeout after its input closed, so Close killed it.
+var ErrPlayerStuck = errors.New("player did not exit after its input closed")
+
 // Stream is a running pw-cat fed through a short pipe.
 type Stream struct {
 	cmd  *exec.Cmd
@@ -52,4 +55,15 @@ func (s *Stream) Write(p []byte) (int, error) {
 }
 
 // Close ends the stream and waits for the player to drain and exit.
-func (s *Stream) Close() error { return errors.Join(s.pipe.Close(), s.cmd.Wait()) }
+// A player still running after StallTimeout is killed, so a wedged audio device cannot hang the daemon's shutdown.
+func (s *Stream) Close() error {
+	closeErr := s.pipe.Close()
+	done := make(chan error, 1)
+	go func() { done <- s.cmd.Wait() }()
+	select {
+	case err := <-done:
+		return errors.Join(closeErr, err)
+	case <-time.After(StallTimeout):
+		return errors.Join(closeErr, ErrPlayerStuck, s.cmd.Process.Kill(), <-done)
+	}
+}
